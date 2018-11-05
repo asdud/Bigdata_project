@@ -1,54 +1,42 @@
-package demo.project07
+package day0709
 
-import org.apache.spark.SparkConf
-import org.apache.spark.SparkContext
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
-import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.SparkSession
 
+//∂®“Âcase class
+case class AreaInfo(area_id:Int,area_name:String)
+case class AdLogInfo(userid:Int,ip:String,clickTime:String,url:String,area_id:Int)
+
+
 object AdPVMain {
-  //ÂÆö‰πâcase class‰øùÂ≠òÂú∞Âå∫‰ø°ÊÅØÂíåÂπøÂëäÁÇπÂáªÊó•Âøó‰ø°ÊÅØ
-  //Âú∞Âå∫Ë°®
-  case class AreaInfo(area_id:Int,area_name:String)
-  
-  //ÂπøÂëäÁÇπÂáªÊó•Âøó
-  //1,201.105.101.102,2017020029,http://ad1.jsp/?key=1,2
-  case class AdLogInfo(userid:Int,ip:String,clickTime:String,url:String,area_id:Int)
-    
   def main(args: Array[String]): Unit = {
     Logger.getLogger("org.apache.spark").setLevel(Level.ERROR)
-    Logger.getLogger("org.eclipse.jetty.server").setLevel(Level.OFF)
+    Logger.getLogger("org.eclipse.jetty.server").setLevel(Level.OFF)   
     
-    //ËÆæÁΩÆÁéØÂ¢ÉÂèòÈáè
-    System.setProperty("hadoop.home.dir", "D:\\tools\\hadoop-2.4.1")
-    System.setProperty("HADOOP_USER_NAME","hdfs")
-    
-    //ÂàõÂª∫SparkSession
-    val spark = SparkSession.builder().master("local").appName("Project07-AdPVMain").getOrCreate()
+    //¥¥Ω®SparkSession∂‘œÛ
+    val spark = SparkSession.builder().master("local").appName("AdPVMain").getOrCreate()
     import spark.sqlContext.implicits._
     
-    val areaInfoDF=spark.sparkContext.textFile("")
-    .map(_.split(",")).map(x=>new AreaInfo(x(0).toInt,x(1),x(2),x(3),x(4).toInt)).toDF
-        
-
+    //¥¥Ω®µÿ«¯±Ì
+    val areaInfoDF = spark.sparkContext.textFile("hdfs://hdp21:8020/input/project07/areainfo.txt")
+                          .map(_.split(",")).map(x=>new AreaInfo(x(0).toInt,x(1))).toDF
+    areaInfoDF.createOrReplaceTempView("areainfo")
+    
+    //¥¥Ω®π„∏Êµ„ª˜»’÷æ±Ì
+    val adClickInfoDF = spark.sparkContext.textFile("hdfs://hdp21:8020/flume/20180710/events-.1531169622734")
+                             .map(_.split(",")).map(x=>new AdLogInfo(x(0).toInt,x(1),x(2),x(3),x(4).toInt)).toDF
+    adClickInfoDF.createOrReplaceTempView("adclickinfo")
+    
+    //∂®“ÂSQL
+    var sql = "select adclickinfo.url,areainfo.area_name,adclickinfo.clicktime,count(adclickinfo.clicktime) "
+    sql = sql + "from areainfo,adclickinfo "
+    sql = sql + "where areainfo.area_id=adclickinfo.area_id "
+    sql = sql + "group by adclickinfo.url,areainfo.area_name,adclickinfo.clicktime"
+    
+    //÷±Ω” ‰≥ˆµΩ∆¡ƒª
+    spark.sql(sql).show
+    
+    spark.stop()
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

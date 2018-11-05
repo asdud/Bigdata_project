@@ -8,21 +8,20 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
+//                                                                k2年份                     v2 金额
 public class AnnualTotalMapper extends Mapper<LongWritable, Text, IntWritable, DoubleWritable> {
 
-	
 	@Override
-	protected void map(LongWritable key2, Text value1,
-			Context context)
+	protected void map(LongWritable key1, Text value1,Context context)
 			throws IOException, InterruptedException {
-		// TODO Auto-generated method stub
-		String data=value1.toString();
+		//数据：13,1660,1998-01-10,3,999,1,1232.16
+		String data = value1.toString();
+		//分词
+		String[] words = data.split(",");
 		
-		String[] words=data.split(",");
-		
-		context.write(new IntWritable(Integer.parseInt("1")), new DoubleWritable(value));
+		//输出  k2年份                     v2 金额
+		context.write(new IntWritable(Integer.parseInt(words[2].substring(0, 4))), 
+		              new DoubleWritable(Double.parseDouble(words[6])));
 	}
-
-	
 
 }
