@@ -14,7 +14,7 @@ object PeopleInfoCalc {
     //val dataFile = sc.textFile("d:\\temp\\sample_people_info.txt")
     val dataFile = sc.textFile(args(0))
     
-    //拆分：男、女                                                                                                     数据     2 M 105             性别                                                      升高
+    //拆分：男、女                 数据     2 M 105             性别                       身高
     val maleData = dataFile.filter(line=>line.contains("M")).map(line=>(line.split(" ")(1) + " " + line.split(" ")(2)))
     val feMaleData = dataFile.filter(line=>line.contains("F")).map(line=>(line.split(" ")(1) + " " + line.split(" ")(2)))
     
